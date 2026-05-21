@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Рейтинг школ — Терра Москва, Поток 38</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A84C;--teal:#1ADED4;--coral:#FF6B6B;--green:#3DDC84;--accent:#6C63FF;
+  /* night (default) */
+  --deep:#0A0A12;--deep2:#12121E;
+  --surface:#1E1E34;--surface2:#25253D;
+  --text:#F0EDE6;--text-muted:#8B8AA0;
+  --border:rgba(201,168,76,0.18);--border2:rgba(255,255,255,0.06);
+  --bar-track:rgba(255,255,255,0.06);
+}
+html.day{
+  --deep:#F5F4F0;--deep2:#ECEAE3;
+  --surface:#FFFFFF;--surface2:#F0EDE6;
+  --text:#1A1A2E;--text-muted:#6B6A80;
+  --border:rgba(201,168,76,0.3);--border2:rgba(0,0,0,0.07);
+  --bar-track:rgba(0,0,0,0.06);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Golos Text',sans-serif;background:var(--deep);color:var(--text);overflow-x:hidden}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4rem 2rem;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 20%,rgba(108,99,255,.18) 0%,transparent 70%),radial-gradient(ellipse 50% 40% at 80% 80%,rgba(201,168,76,.12) 0%,transparent 60%);pointer-events:none}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.04) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:100px;padding:6px 18px;font-size:12px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:2rem;background:rgba(201,168,76,.07)}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-family:'Unbounded',sans-serif;font-size:clamp(2.2rem,6vw,5rem);font-weight:900;line-height:1.05;margin-bottom:1rem;background:linear-gradient(135deg,#F0EDE6 0%,var(--gold) 50%,#F0EDE6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:1.05rem;color:var(--text-muted);max-width:520px;line-height:1.7;margin-bottom:3rem}
+.hero-stats{display:flex;gap:3rem;justify-content:center;flex-wrap:wrap}
+.hero-stat-num{font-family:'Unbounded',sans-serif;font-size:2.4rem;font-weight:700;color:var(--gold);line-height:1}
+.hero-stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-top:6px}
+
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.25}
+.section{padding:4rem 2rem;max-width:1200px;margin:0 auto}
+.section-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem}
+.section-title{font-family:'Unbounded',sans-serif;font-size:clamp(1.4rem,3vw,2.2rem);font-weight:700;margin-bottom:2.5rem}
+
+/* PODIUM — теперь 1→2→3 слева направо, выровнены по нижнему краю разной высотой */
+.podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:1.5rem;margin-bottom:3rem;flex-wrap:wrap}
+.podium-card{position:relative;border-radius:20px;padding:2rem 1.5rem 1.5rem;text-align:center;border:1px solid transparent;transition:transform .3s;flex:0 1 250px}
+.podium-card:hover{transform:translateY(-6px)}
+/* 1-е место — самая высокая */
+.podium-card.rank-1{background:linear-gradient(160deg,#2A2415 0%,#1A1508 100%);border-color:var(--gold);box-shadow:0 0 60px rgba(201,168,76,.2),inset 0 1px 0 rgba(201,168,76,.3);order:1;padding-top:3.5rem;flex:0 1 260px}
+/* 2-е место — средняя */
+.podium-card.rank-2{background:linear-gradient(160deg,#1C1C2E 0%,#141420 100%);border-color:rgba(192,192,192,.4);order:2;padding-top:2rem;flex:0 1 230px}
+/* 3-е место — обе одинакового размера, меньше rank-2 */
+.podium-card.rank-3{background:linear-gradient(160deg,#1C1608 0%,#141006 100%);border-color:rgba(205,127,50,.4);order:3;padding-top:1.2rem;flex:0 0 200px;font-size:0.9em;height:230px}.podium-card.rank-3 .podium-school{overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.podium-crown{font-size:2rem;margin-bottom:.4rem;display:block}
+.podium-rank{font-family:'Unbounded',sans-serif;font-size:2.6rem;font-weight:900;line-height:1;margin-bottom:.4rem}
+.rank-1 .podium-rank{color:var(--gold)}.rank-2 .podium-rank{color:#C0C0C0}.rank-3 .podium-rank{color:#CD7F32}
+.podium-name{font-size:.83rem;font-weight:600;margin-bottom:.3rem;line-height:1.4}
+.podium-school{font-size:.72rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.4}
+.podium-score{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600}
+.rank-1 .podium-score{color:var(--gold)}.rank-2 .podium-score{color:#C0C0C0}.rank-3 .podium-score{color:#CD7F32}
+/* 4 карточки — 1 широкая + 1 + 2 рядом */
+.podium-row-3{display:flex;gap:1rem;order:3}
+.podium-row-3 .podium-card.rank-3{flex:1;min-width:180px}
+
+/* TABS */
+.tabs-section{background:var(--deep2);padding:4rem 0}
+.tabs-inner{max-width:1200px;margin:0 auto;padding:0 2rem}
+.tabs-nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:1.5rem;margin-bottom:2rem}
+.tab-btn{padding:8px 16px;border-radius:100px;border:1px solid var(--border2);background:transparent;color:var(--text-muted);font-family:'Golos Text',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn:hover{border-color:var(--border);color:var(--text)}
+.tab-btn.active{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.criterion-layout{display:grid;grid-template-columns:1fr 380px;gap:2rem;align-items:start}
+@media(max-width:900px){.criterion-layout{grid-template-columns:1fr}}
+
+/* TABLE */
+.rank-table{width:100%;border-collapse:collapse}
+.rank-table th{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2)}
+.rank-table td{padding:10px 12px;border-bottom:1px solid var(--border2);font-size:.82rem;vertical-align:middle}
+.rank-table tr:hover td{background:rgba(255,255,255,.02)}
+.rank-table tr:last-child td{border-bottom:none}
+.rk{font-family:'Unbounded',sans-serif;font-size:.85rem;font-weight:700;text-align:center;width:36px}
+.rk.g{color:var(--gold)}.rk.s{color:#C0C0C0}.rk.b{color:#CD7F32}.rk.n{color:var(--text-muted)}
+.sc-teacher{font-size:.8rem;font-weight:600;color:var(--text)}
+.sc-name{font-size:.72rem;color:var(--text-muted)}
+.val{text-align:right;font-weight:600;white-space:nowrap}
+.badge{display:inline-block;border-radius:100px;padding:2px 10px;font-size:11px;font-weight:600}
+.bg{background:rgba(61,220,132,.12);color:#3DDC84}
+.ba{background:rgba(201,168,76,.12);color:var(--gold)}
+.bb{background:rgba(108,99,255,.12);color:#9B95FF}
+.bt{background:rgba(29,222,212,.12);color:var(--teal)}
+.bc{background:rgba(255,107,107,.12);color:var(--coral)}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;position:sticky;top:1rem}
+.chart-card h4{font-family:'Unbounded',sans-serif;font-size:.78rem;font-weight:700;margin-bottom:1.2rem}
+.table-scroll{max-height:600px;overflow-y:auto;border-radius:12px;border:1px solid var(--border)}
+.table-scroll::-webkit-scrollbar{width:4px}
+.table-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.criterion-desc{font-size:.85rem;color:var(--text-muted);margin-bottom:2rem;max-width:600px;line-height:1.6}
+
+.bar-cell{width:180px;padding-right:16px}
+.bar-wrap{display:flex;align-items:center;gap:6px}
+.bar-track{flex:1;height:8px;background:var(--bar-track);border-radius:4px;overflow:hidden}
+.criterion-desc{display:flex;align-items:flex-start;gap:1rem}
+.criterion-desc svg{flex-shrink:0;margin-top:2px}
+.criterion-desc-text{flex:1}
+
+.bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.bar-label{font-size:11px;font-weight:600;white-space:nowrap;min-width:36px;text-align:right}
+
+.theme-toggle{position:fixed;top:1.2rem;right:1.5rem;z-index:999;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:6px 14px;cursor:pointer;font-family:'Golos Text',sans-serif;font-size:12px;font-weight:500;color:var(--text-muted);transition:all .2s;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.theme-toggle:hover{border-color:var(--gold);color:var(--gold)}
+.theme-toggle-icon{font-size:14px}
+
+.footer{text-align:center;padding:3rem;color:var(--text-muted);font-size:.8rem;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle"><span class="theme-toggle-icon">🌙</span><span id="themeLabel">Ночь</span></button>
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-badge">Поток 38 · Итоги · 14.05.2026</div>
+  <h1>Где лучше учиться<br>предпринимательству?</h1>
+  <p class="hero-sub">Отдел методологии Терры отслеживает 7 показателей по всем оффлайн-школам — чтобы будущие ученики видели реальные результаты предыдущего потока и делали осознанный выбор. Поток 38 проходил с 26 февраля по 14 мая 2026 года.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-num">114</div><div class="hero-stat-label">Школ оценено</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">7</div><div class="hero-stat-label">Критериев честной оценки</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">8–12</div><div class="hero-stat-label">Занятий в каждой школе</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">38</div><div class="hero-stat-label">Поток Терры</div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WHAT IS TERRA -->
+<section class="section" style="max-width:1000px">
+  <p class="section-label">Контекст</p>
+  <h2 class="section-title" style="margin-bottom:1.5rem">Что такое Терра Москва?</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2rem;margin-bottom:3rem">
+
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:1rem">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- people circle sketch -->
+        <circle cx="32" cy="32" r="30" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <circle cx="32" cy="20" r="6" stroke="var(--gold)" stroke-width="1.5"/>
+        <path d="M20 40c0-6.627 5.373-8 12-8s12 1.373 12 8" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="16" cy="34" r="4.5" stroke="var(--text-muted)" stroke-width="1.2"/>
+        <path d="M8 48c0-5 3.5-6 8-6s8 1 8 6" stroke="var(--text-muted)" stroke-width="1.2" stroke-linecap="round"/>
+        <circle cx="48" cy="34" r="4.5" stroke="var(--text-muted)" stroke-width="1.2"/>
+        <path d="M40 48c0-5 3.5-6 8-6s8 1 8 6" stroke="var(--text-muted)" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div style="font-family:'Unbounded',sans-serif;font-size:.85rem;font-weight:700;margin-bottom:.4rem;color:var(--text)">Живое окружение</div>
+        <div style="font-size:.82rem;color:var(--text-muted);line-height:1.6">Бесплатный международный бизнес-клуб для предпринимателей. Сотни единомышленников, которые растут рядом с тобой.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:1rem">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- school/podium sketch -->
+        <rect x="8" y="38" width="14" height="18" rx="2" stroke="var(--gold)" stroke-width="1.5"/>
+        <rect x="25" y="28" width="14" height="28" rx="2" stroke="var(--gold)" stroke-width="1.5"/>
+        <rect x="42" y="18" width="14" height="38" rx="2" stroke="var(--gold)" stroke-width="1.5"/>
+        <path d="M4 56h56" stroke="var(--text-muted)" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M49 8l4 4-4 4" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11 22l4-4 4 4" stroke="var(--text-muted)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div style="font-family:'Unbounded',sans-serif;font-size:.85rem;font-weight:700;margin-bottom:.4rem;color:var(--text)">114 оффлайн-школ в потоке</div>
+        <div style="font-size:.82rem;color:var(--text-muted);line-height:1.6">Каждый поток длится около 3 месяцев. Поток 38 — с 26 февраля по 14 мая 2026. Участник выбирает 2 оффлайн-школы и проходит от 8 до 12 занятий в каждой.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:1rem">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- growth arrow sketch -->
+        <path d="M8 52 Q20 40 30 30 Q38 22 52 10" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M40 10h12v12" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="16" cy="44" r="3" fill="var(--gold)" opacity=".4"/>
+        <circle cx="30" cy="30" r="3" fill="var(--gold)" opacity=".6"/>
+        <circle cx="44" cy="18" r="3" fill="var(--gold)"/>
+        <path d="M8 56h48" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="3 3"/>
+      </svg>
+      <div>
+        <div style="font-family:'Unbounded',sans-serif;font-size:.85rem;font-weight:700;margin-bottom:.4rem;color:var(--text)">Среда, в которой растут</div>
+        <div style="font-size:.82rem;color:var(--text-muted);line-height:1.6">Оффлайн-школы — одно из направлений Терры. Помимо этого: встречи, менторство, нетворкинг и сопровождение от топ-предпринимателей. Рост происходит через среду, а не только через контент.</div>
+      </div>
+    </div>
+
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem 2rem;font-size:.9rem;color:var(--text-muted);line-height:1.7;border-left:3px solid var(--gold)">
+    <strong style="color:var(--text)">Как пользоваться этим рейтингом:</strong> если вы на ярмарке школ — листайте вниз и изучайте критерии. Выбирайте не только по теме, но и по тому, насколько ученики реально вовлечены и растут. Это оффлайн-обучение: 3 месяца, живые встречи, реальный результат. Каждый показатель кликабелен.
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section">
+  <p class="section-label">Лучшие из лучших</p>
+  <h2 class="section-title">Топ-3 школы потока 38</h2>
+
+  <!-- Podium: 1 → 2 → 3a → 3b слева направо -->
+  <div class="podium-wrap">
+
+    <!-- 1-е место -->
+    <div class="podium-card rank-1">
+      <span class="podium-crown">👑</span>
+      <div class="podium-rank">1</div>
+      <div class="podium-name">Юлия Алёшина,<br>Дарья Ковалевская</div>
+      <div class="podium-school">Школа Харизмы и бизнес-коммуникаций</div>
+      <div class="podium-score">Σ рангов: 149</div>
+    </div>
+
+    <!-- 2-е место -->
+    <div class="podium-card rank-2">
+      <span class="podium-crown">🥈</span>
+      <div class="podium-rank">2</div>
+      <div class="podium-name">Алексей Штабкин,<br>Марина Чепрасова</div>
+      <div class="podium-school">Школа SEO маркетинга</div>
+      <div class="podium-score">Σ рангов: 169</div>
+    </div>
+
+    <!-- 3-е место — Романова -->
+    <div class="podium-card rank-3">
+      <span class="podium-crown">🥉</span>
+      <div class="podium-rank">3</div>
+      <div class="podium-name">Елена Романова</div>
+      <div class="podium-school">Школа «Основы предпринимательства по программе МВА»</div>
+      <div class="podium-score">Σ рангов: 183</div>
+    </div>
+
+    <!-- 3-е место — Хавруцкая -->
+    <div class="podium-card rank-3">
+      <span class="podium-crown">🥉</span>
+      <div class="podium-rank">3</div>
+      <div class="podium-name">Марина Хавруцкая</div>
+      <div class="podium-school">Академия Бизнеса на туризме</div>
+      <div class="podium-score">Σ рангов: 183</div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<div class="tabs-section">
+<div class="tabs-inner">
+  <p class="section-label">Выбирай осознанно</p>
+  <h2 class="section-title" style="margin-bottom:.5rem">Рейтинг по каждому критерию</h2>
+  <p style="font-size:.9rem;color:var(--text-muted);max-width:640px;line-height:1.7;margin-bottom:0">Каждый показатель отражает реальное поведение учеников — не слова, а цифры. Переключайтесь между критериями и смотрите, какие школы лидируют именно в том, что важно для вас.</p>
+  <div class="tabs-nav" id="tabsNav">
+    <button class="tab-btn active" data-tab="t0">Итоговый рейтинг</button>
+    <button class="tab-btn" data-tab="t1">1. Регистрации</button>
+    <button class="tab-btn" data-tab="t4">4. Обратная связь</button>
+    <button class="tab-btn" data-tab="t5">5. NPS</button>
+    <button class="tab-btn" data-tab="t6">6. Живые проверки</button>
+    <button class="tab-btn" data-tab="t7">7. Прирост навыков</button>
+    <button class="tab-btn" data-tab="t8">8. Доходимость</button>
+    <button class="tab-btn" data-tab="t9">9. Изменение медианного дохода</button>
+  </div>
+  <div id="tabPanels"></div>
+</div>
+</div>
+
+<div class="divider"></div>
+<footer class="footer">
+  <p style="font-family:'Unbounded',sans-serif;font-size:.7rem;letter-spacing:.1em;color:var(--gold);margin-bottom:.5rem">ТЕРРА МОСКВА · ПОТОК 38 · 14.05.2026</p>
+  <p>Официальный итоговый рейтинг школ образовательного проекта</p>
+</footer>
+
+<script>
+// Данные из листа "Рейтинг 38 14.05.2026 23:59"
+// [№рейтинга, учитель, школа, регистрации, conv1%, conv2%, feedback, nps%, живые_пров, прирост_навыков, доходимость%, доход_руб, сумма_рангов]
+const ALL = [
+  [1,  "Юлия Алёшина, Дарья Ковалевская",          "Школа Харизмы и бизнес-коммуникаций",                            104, 88,  63,  4.989, 96,  24,   4.9,  55,   30000,   149,   1,  3],
+  [2,  "Алексей Штабкин, Марина Чепрасова",         "Школа SEO маркетинга",                                           99,  101, 69,  4.926, 91,  24,   6.9,  51,   114000,  169,   1,  28],
+  [3,  "Елена Романова",                             "Школа «Основы предпринимательства по программе МВА»",            64,  72,  76,  4.981, 96,  21,   4.7,  59,   27000,   183,   1,  7],
+  [3,  "Марина Хавруцкая",                           "Академия Бизнеса на туризме",                                    153, 87,  81,  4.927, 89,  17,   4.2,  51,   0,       183,   10,  27],
+  [5,  "Александр Евстигнеев",                       "Школа маркетинга. Яндекс Директ и создание сайтов",              130, 81,  90,  4.924, 88,  23,   5.7,  33,   55000,   192,   1,  30],
+  [6,  "Ольга Сапрыгина",                            "Источник силы для предпринимателей",                             156, 85,  61,  4.975, 97,  16,   2.1,  82,   -30000,  197,   15,  10],
+  [7,  "Жанна Солнце",                               "Школа «Сила Голоса и Речи. Перезагрузка»",                       278, 108, 52,  4.945, 89,  18,   3.0,  54,   0,       215,   10,  19],
+  [8,  "Анжелика Торгашова",                         "Школа партнерства: формула крепких отношений",                   79,  67,  76,  4.946, 91,  16,   4.1,  77,   60000,   218,   1,  17],
+  [9,  "Екатерина Скоблик",                          "Школа Нейромозг для бизнеса и жизни",                            277, 78,  88,  4.872, 89,  16,   5.0,  44,   -50000,  224,   15,  61],
+  [10, "Никита Пичугин",                             "Школа Нельзяграм",                                               208, 74,  84,  4.922, 93,  24,   3.6,  44,   15000,   230,   1,  31],
+  [11, "Олег Андреев",                               "Школа самодисциплины Сказал Сделал Заработал",                   126, 94,  58,  4.915, 90,  18,   4.1,  51,   -10000,  235,   15,  36],
+  [12, "Ася Муфтахина, Эдуард Меликян",              "Школа B2G и тендерных продаж",                                   41,  85,  62,  4.954, 88,  16,   5.1,  57,   0,       236,   10,  15],
+  [13, "Венера Сафина",                              "Академия Финансов и Инвестиций",                                 153, 101, 85,  4.99, 97,  16,   null, null, null,    238,   15,  2],
+  [14, "Ольга Попова",                               "Школа ИИ и нейросетей. Нейросети с нуля",                        536, 109, 77,  4.78, 84,  16,   5.1,  45,   0,       239,   10],
+  [15, "Александра Зык",                             "Школа бизнес-система для дизайнеров",                            39,  62,  86,  4.984, 94,  16,   4.6,  74,   50000,   242,   1,  5],
+  [16, "Дмитрий Парыгин",                            "Великая школа бизнеса",                                          131, 73,  49,  4.979, 91,  16,   3.4,  63,   70000,   242,   1,  8],
+  [17, "Екатерина Скоблик",                          "Школа Маркетинговый мозг: стратегический подход к PR",            237, 81,  86,  4.902, 87,  16,   3.8,  38,   -30000,  242,   15,  47],
+  [18, "Марина Смолягина, Мария Жигунова, Г. Кашу",  "Школа Флиппинга квартир",                                        65,  68,  102, 4.909, 90,  16,   4.1,  51,   50000,   244,   1,  43],
+  [19, "Иван Шевнин, Яна Еленская",                  "Академия нейросетей",                                            499, 85,  78,  4.83, 83,  16,   4.2,  54,   0,       249,   10],
+  [20, "Алла Хукюм",                                 "Школа Профайлинга",                                              137, 74,  88,  4.91, 83,  18,   2.6,  73,   50000,   251,   1,  40],
+  [21, "Руслан Расулов",                             "Экологичные продажи и переговоры в один звонок",                  115, 90,  57,  4.899, 90,  16,   2.2,  84,   35000,   253,   1,  49],
+  [22, "Наталья Бардышева, Юлия Фащеева",            "Цифровой офис 2026 с GPT-ассистентом",                            53,  85,  76,  4.974, 90,  22,   4.8,  27,   null,    255,   15,  12],
+  [23, "Анастасия Дарченко",                         "Школа системного бизнеса для сферы услуг",                       104, 78,  68,  4.912, 88,  21,   3.1,  72,   20000,   259,   1,  39],
+  [24, "Екатерина Сазонова, Алексей Колтомов",       "Школа «Свобода Проявления»",                                     149, 83,  75,  4.895, 89,  24,   2.0,  45,   0,       262,   10,  51],
+  [25, "Андрей Мишин",                               "Школа выход из найма",                                           194, 55,  83,  4.919, 86,  17,   5.5,  36,   -45000,  263,   15,  34],
+  [26, "Римма Плохих, Виталий Муравьев",             "Школа продаж 2.0",                                               22,  73,  60,  4.913, 92,  24,   4.9,  64,   165000,  263,   1,  38],
+  [27, "Марина Антонова, Иван Славуцкий",            "Школа ИИ автопилот для экспертов",                               234, 80,  82,  4.871, 84,  20,   4.8,  29,   -20000,  264,   15,  62],
+  [28, "Тимофей Давыдов",                            "Школа криптовалют",                                              70,  37,  106, 4.895, 90,  16,   5.8,  44,   50000,   265,   1,  53],
+  [29, "Елена Сергеенко",                            "Осознанный риелтор. Выбор своего пути",                          43,  67,  49,  4.922, 95,  16,   5.7,  81,   0,       269,   10,  32],
+  [30, "Анна Клинчаева",                             "Школа Путь инвестора: Недвижимость",                             64,  89,  86,  4.89, 81,  21,   4.2,  52,   -30000,  270,   15,  56],
+  [31, "Элеонора Теодорович",                        "Легендарная академия спикеров",                                  153, 80,  58,  4.934, 86,  16,   3.7,  48,   0,       277,   10,  24],
+  [32, "Олеся Малькова, Анна Адриан",                "Школа Сильный бренд на миллион и нейросети",                     221, 81,  71,  4.869, 84,  24,   3.0,  45,   10000,   282,   1,  63],
+  [33, "Анна Москалькова",                           "Великий оратор",                                                 275, 62,  91,  4.91, 86,  15,   0.0,  40,   null,    290,   15,  42],
+  [34, "Евгения Киргизова",                          "Школа Нейрохакинг",                                              95,  79,  68,  4.95, 87,  22,   2.2,  42,   -10500,  292,   15,  16],
+  [35, "Анастасия Гоголина",                         "Тайм-менеджмент для предпринимателей",                           47,  57,  72,  4.934, 88,  15,   2.3,  92,   50000,   295,   1,  23],
+  [36, "Таисия Афанасьева, Альбина Усманова",        "Бизнес на макияже",                                              47,  94,  70,  4.937, 93,  24,   null, 77,   null,    296,   15,  22],
+  [37, "Екатерина Милова",                           "Школа управления эффективностью бизнеса",                        29,  69,  62,  4.901, 98,  16,   4.8,  46,   -10000,  297,   15,  48],
+  [38, "Анна Клинчаева",                             "Школа Недвижимость с торгов",                                    232, 76,  72,  4.894, 87,  16,   2.7,  41,   -20000,  298,   15,  54],
+  [39, "Светлана Железовская",                       "Школа «Психология Лидерства»",                                   13,  269, 73,  4.966, 92,  16,   null, 63,   null,    302,   15,  14],
+  [40, "Андрей Кондранин",                           "Школа Команда + ИИ",                                             40,  83,  44,  4.97, 96,  23,   4.0,  38,   null,    305,   15,  13],
+  [41, "Оксана Филиппенкова",                        "Школа Финансы и психология",                                     57,  82,  60,  4.891, 88,  16,   2.7,  53,   2500,    311,   1,  55],
+  [42, "Виктория Мотылева",                          "Школа имиджа и стиля",                                           114, 59,  56,  4.945, 90,  23,   4.0,  75,   -5000,   314,   15,  18],
+  [43, "Анастасия Новикова",                         "Антихрупкий бизнес: юридическая защита",                         42,  93,  63,  4.80, 80,  16,   5.0,  86,   -5000,   315,   15],
+  [44, "Ирина Цай",                                  "Школа Лидера. Система, стратегия, результат",                    43,  95,  72,  4.929, 93,  16,   null, 46,   null,    316,   15,  26],
+  [45, "Юлия Фащеева",                               "Школа «Новостройки Москвы и МО»",                                65,  94,  62,  4.888, 89,  24,   3.9,  14,   50000,   321,   1,  58],
+  [46, "Елена Шевчук",                               "Школа грантрайтинга",                                            54,  56,  91,  4.903, 83,  16,   3.8,  49,   0,       322,   10,  46],
+  [47, "Александра Зык",                             "Бизнес система для дизайнеров 2.0",                              48,  75,  47,  4.99, 100, 22,   null, 92,   null,    329],
+];
+
+const CRITERIA = [
+  {id:'t0',icon:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M10 24l4-8 4 4 4-6 4 6" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,name:'Итоговый рейтинг',key:12,label:'Σ рангов',fmt:v=>v,desc:'Итоговая позиция школы по совокупности всех 7 критериев. Чем меньше сумма рангов — тем стабильнее школа показывает себя сразу по всем направлениям. Это не «победа в одном» — это системный результат.',asc:true,badge:'ba',color:'rgba(201,168,76,0.8)',colorB:'#C9A84C'},
+  {id:'t1',icon:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="13" cy="12" r="4" stroke="var(--teal)" stroke-width="1.5"/><path d="M5 26c0-4.4 3.6-6 8-6s8 1.6 8 6" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round"/><circle cx="26" cy="14" r="3" stroke="var(--teal)" stroke-width="1.2"/><path d="M21 26c0-3.3 2.2-4.5 5-4.5s5 1.2 5 4.5" stroke="var(--teal)" stroke-width="1.2" stroke-linecap="round"/></svg>`,name:'Регистрации',key:3,label:'Чел.',fmt:v=>v.toLocaleString('ru'),desc:'Сколько человек зарегистрировалось на школу. Отражает интерес и силу темы — но не гарантирует качество. Смотрите этот показатель в связке с доходимостью.',asc:false,badge:'bt',color:'rgba(29,222,212,0.75)',colorB:'#1ADED4'},
+  {id:'t4',icon:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M18 6l2.5 7.5H28l-6.2 4.5 2.4 7.5L18 21l-6.2 4.5 2.4-7.5L8 13.5h7.5z" stroke="var(--gold)" stroke-width="1.5" stroke-linejoin="round"/></svg>`,name:'Обратная связь',key:14,label:'Оценка',fmt:v=>v!=null?v.toFixed(0):'—',desc:'После каждого занятия ученики анонимно оценивают школу. Это живой пульс: насколько преподаватель понятен, полезен и уважает время людей. Максимум — 5.00.',asc:true,badge:'ba',color:'rgba(201,168,76,0.8)',colorB:'#C9A84C',rankValKey:6,
+  {id:'t5',icon:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M6 28l4-8h16l4 8" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 20V12a8 8 0 1116 0v8" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/><circle cx="18" cy="24" r="2" fill="var(--accent)" opacity=".5"/></svg>`,name:'NPS',key:7,label:'%',fmt:v=>v+'%',desc:'Net Promoter Score: сколько учеников готовы рекомендовать школу друзьям. Высокий NPS — признак того, что люди уходят с занятий с желанием вернуться и рассказать другим.',asc:false,badge:'bb',color:'rgba(108,99,255,0.75)',colorB:'#6C63FF'},
+  {id:'t6',icon:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="6" y="10" width="24" height="18" rx="3" stroke="var(--teal)" stroke-width="1.5"/><path d="M12 19l4 4 8-8" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 10V8a2 2 0 014 0v2M22 10V8a2 2 0 014 0v2" stroke="var(--teal)" stroke-width="1.2" stroke-linecap="round"/></svg>`,name:'Живые проверки',key:8,label:'Балл',fmt:v=>v,desc:'Очные экзамены, которые принимают топ-предприниматели Терры. Они проверяют не знание теории, а реальное применение. Высокий балл — школа учит делать, а не слушать.',asc:false,badge:'bt',color:'rgba(29,222,212,0.75)',colorB:'#1ADED4'},
+  {id:'t7',icon:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M6 28 Q12 20 18 14 Q24 8 30 6" stroke="var(--green)" stroke-width="2" stroke-linecap="round"/><path d="M24 6h6v6" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="14" r="2.5" fill="var(--green)" opacity=".5"/><path d="M6 30h24" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="2 2"/></svg>`,name:'Прирост навыков',key:9,label:'т.Б',fmt:v=>v!=null?v.toFixed(1)+'т.Б':'—',desc:'Ученики проходят тест в начале и в конце потока. Разница — это и есть прирост в тестовых баллах. Объективная мера того, изменилось ли мышление и навыки.',asc:false,badge:'bg',color:'rgba(61,220,132,0.75)',colorB:'#3DDC84'},
+  {id:'t8',icon:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M18 6v24" stroke="var(--coral)" stroke-width="1.5" stroke-dasharray="3 2"/><circle cx="18" cy="6" r="3" fill="var(--coral)" opacity=".4"/><circle cx="18" cy="18" r="3" fill="var(--coral)" opacity=".6"/><circle cx="18" cy="30" r="3" fill="var(--coral)"/><path d="M10 10h5M10 18h5M10 26h5" stroke="var(--coral)" stroke-width="1.2" stroke-linecap="round"/></svg>`,name:'Доходимость',key:10,label:'%',fmt:v=>v!=null?v+'%':'—',desc:'Какой процент зарегистрировавшихся дошёл до последнего занятия. Высокая доходимость — школа умеет удерживать интерес на протяжении всех 11 уроков.',asc:false,badge:'bc',color:'rgba(255,107,107,0.75)',colorB:'#FF6B6B'},
+  {id:'t9',icon:`<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="8" y="20" width="6" height="10" rx="1" fill="var(--green)" opacity=".3" stroke="var(--green)" stroke-width="1.2"/><rect x="16" y="14" width="6" height="16" rx="1" fill="var(--green)" opacity=".5" stroke="var(--green)" stroke-width="1.2"/><rect x="24" y="8" width="6" height="22" rx="1" fill="var(--green)" opacity=".7" stroke="var(--green)" stroke-width="1.2"/><path d="M6 32h24" stroke="var(--text-muted)" stroke-width="1" stroke-linecap="round"/></svg>`,name:'Изменение медианного дохода',key:13,label:'Изменение медианного дохода',fmt:v=>v,desc:'Сравниваются медианные доходы учеников до и после обучения. ➕ означает рост, 0 — без изменений, ➖ — снижение. Один из самых честных показателей ценности обучения.',asc:true,badge:'ba',color:'rgba(201,168,76,0.8)',colorB:'#C9A84C'},
+];
+
+const charts={};
+function rkClass(i,r,cr){const v=cr&&cr.id==="t0"&&r?r[0]:i+1;return v===1?'rk g':v===2?'rk s':v===3?'rk b':'rk n'}
+
+function buildPanel(cr){
+  const k=cr.key;
+  let data=ALL.filter(r=>r[k]!==null&&r[k]!==undefined);
+  if(cr.id==='t9') data=[...data].sort((a,b)=>a[13]-b[13]||a[1].localeCompare(b[1],'ru'));
+  else data=cr.asc?[...data].sort((a,b)=>a[k]-b[k]):[...data].sort((a,b)=>b[k]-a[k]);
+  const top40=data.slice(0,40);
+  const signFmt=v=>v!=null?(v>0?"➕":v<0?"➖":"0"):"—";
+  // compute max for bar scaling
+  const numVals=top40.map(r=>r[k]).filter(v=>typeof v==='number'&&isFinite(v));
+  const maxVal=numVals.length?Math.max(...numVals.map(Math.abs)):1;
+  const rows=top40.map((r,i)=>{
+    const dn=cr.id==="t0"?r[0]:i+1;
+    const rkCls=cr.id==="t9"?"rk n":rkClass(i,r,cr);
+    const val=r[k];
+    // badge cell
+    const mainCell=cr.id==="t9"?`<span class="badge ${cr.badge}">${signFmt(r[11])}</span>`:`<span class="badge ${cr.badge}">${val!=null?cr.fmt(val):"—"}</span>`;
+    const extraCell=cr.id==="t9"?`<td class="val"><span class="badge bb">${r[13]!=null?r[13]:"—"}</span></td>`:cr.id==="t4"?`<td class="val"><span class="badge ba">${r[6]!=null?r[6].toFixed(3):"—"}</span></td>`:"";
+    // inline bar
+    let barHtml="";
+    if(typeof val==='number'&&isFinite(val)){
+      const pct=Math.round(Math.abs(val)/maxVal*100);
+      const barColor=cr.colorB;
+      barHtml=`<td class="bar-cell"><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${barColor}99,${barColor})"></div></div></div></td>`;
+    } else {
+      barHtml=`<td class="bar-cell"></td>`;
+    }
+    return`<tr><td class="${rkCls}">${dn}</td><td><div class="sc-teacher">${r[1]}</div><div class="sc-name">${r[2]}</div></td><td class="val">${mainCell}</td>${extraCell}${barHtml}</tr>`;
+  }).join("");
+  const thExtra=cr.id==='t9'?'<th style="text-align:right">Ранг</th>':cr.id==='t4'?'<th style="text-align:right">Оценка</th>':"";
+  return`<div class="tab-panel" id="${cr.id}"><div class="criterion-desc">${cr.icon||''}<div class="criterion-desc-text">${cr.desc}</div></div><div class="table-scroll"><table class="rank-table"><thead><tr><th style="width:40px">№</th><th>Школа / Руководитель</th><th style="text-align:right">${cr.label}</th>${thExtra}<th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+const pc=document.getElementById('tabPanels');
+CRITERIA.forEach(cr=>pc.insertAdjacentHTML('beforeend',buildPanel(cr)));
+document.getElementById('t0').classList.add('active');
+
+document.getElementById('tabsNav').addEventListener('click',e=>{
+  const btn=e.target.closest('.tab-btn');
+  if(!btn)return;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  const id=btn.dataset.tab;
+  document.getElementById(id).classList.add('active');
+  if(!charts[id])initChart(id);
+});
+
+function initChart(id){
+  const cr=CRITERIA.find(c=>c.id===id);
+  if(!cr)return;
+  const k=cr.key;
+  let data=ALL.filter(r=>r[k]!==null&&r[k]!==undefined);
+  if(cr.id==='t9') data=[...data].sort((a,b)=>a[13]-b[13]||a[1].localeCompare(b[1],'ru'));
+  else data=cr.asc?[...data].sort((a,b)=>a[k]-b[k]):[...data].sort((a,b)=>b[k]-a[k]);
+  const chartData=cr.id==='t9'?data.slice(0,40):data.slice(0,20);
+  // For t9: sign values for chart (1=plus, 0=zero, -1=minus based on r[11])
+  const vals=cr.id==='t9'?chartData.map(r=>r[13]!=null?r[13]:15):chartData.map(r=>r[k]);
+  // Label: first two words of teacher name (Имя Фамилия)
+  const labels=chartData.map(r=>{const parts=r[1].split(',')[0].trim().split(' ');return parts.slice(0,2).join(' ');});
+  const bgs=cr.id==='t9'?chartData.map(r=>r[11]>0?'rgba(61,220,132,0.75)':r[11]<0?'rgba(255,107,107,0.75)':'rgba(201,168,76,0.75)'):chartData.map((_,i)=>i===0?'rgba(201,168,76,0.9)':i===1?'rgba(192,192,192,0.7)':i===2?'rgba(205,127,50,0.7)':cr.color);
+  const bds=cr.id==='t9'?chartData.map(r=>r[11]>0?'#3DDC84':r[11]<0?'#FF6B6B':'#C9A84C'):chartData.map((_,i)=>i===0?'#C9A84C':i===1?'#C0C0C0':i===2?'#CD7F32':cr.colorB);
+  const canvas=document.getElementById('chart_'+id);
+  if(!canvas)return;
+  const chartH=cr.id==='t9'?Math.max(460,chartData.length*22):460;
+  canvas.parentElement.style.height=chartH+'px';
+  charts[id]=new Chart(canvas,{type:'bar',data:{labels,datasets:[{label:cr.label,data:vals,backgroundColor:bgs,borderColor:bds,borderWidth:1.5,borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const r=chartData[ctx.dataIndex];return` ${r[11]!=null?(r[11]>0?"➕":r[11]<0?"➖":"0"):"—"} | Ранг: ${r[13]!=null?r[13]:"—"}`;}}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B8AA0',font:{size:11}}},y:{grid:{display:false},ticks:{color:'#8B8AA0',font:{size:10}}}}}});
+}
+initChart('t0');
+// Theme toggle
+document.getElementById('themeToggle').addEventListener('click',()=>{
+  const isDay=document.documentElement.classList.toggle('day');
+  document.getElementById('themeLabel').textContent=isDay?'День':'Ночь';
+  document.querySelector('.theme-toggle-icon').textContent=isDay?'☀️':'🌙';
+});
+
+</script>
+</body>
+</html>
